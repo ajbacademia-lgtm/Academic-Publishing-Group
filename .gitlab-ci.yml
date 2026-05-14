@@ -1,0 +1,36 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "20"
+
+build:
+  stage: build
+  image: node:20-alpine
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+  script:
+    - npm ci
+    - npx tsc --noEmit
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  environment:
+    name: $CI_COMMIT_REF_NAME
+
+pages:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - cp -r dist public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
